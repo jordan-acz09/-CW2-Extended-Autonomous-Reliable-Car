@@ -1,0 +1,64 @@
+#include <wiringPi.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "quickblob.h"
+
+// Function to initialize a double-linked list with n elements
+struct blob* initialize_list(int n) {
+    struct blob* head = malloc(sizeof(struct blob));
+    struct blob* current = head;
+    for (int i = 1; i < n; i++) {
+        struct blob* new_blob = malloc(sizeof(struct blob));
+        new_blob->x1 = i;
+        new_blob->next = NULL;
+        new_blob->prev = current;
+        current->next = new_blob;
+        current = new_blob;
+    }
+    return head;
+}
+
+// Function to free the list
+void free_list(struct blob* head) {
+    struct blob* current = head;
+    while (current) {
+        struct blob* temp = current;
+        current = current->next;
+        free(temp);
+    }
+}
+
+// Measure execution time for blob_insert
+void measure_blob_insert(int list_size, int insert_position) {
+    struct blob* head = initialize_list(list_size);
+    struct blob* insert_blob = malloc(sizeof(struct blob));
+    insert_blob->x1 = insert_position;
+
+    struct blob* current = head;
+    for (int i = 0; i < insert_position && current->next != NULL; i++) {
+        current = current->next;
+    }
+
+    unsigned long start_time = micros();
+    blob_insert(head, insert_blob);  // Replace with actual function call
+    unsigned long end_time = micros();
+
+    printf("List size: %d, Insert position: %d, Time taken: %lu microseconds\n", 
+            list_size, insert_position, end_time - start_time);
+
+    free_list(head);
+    free(insert_blob);
+}
+
+int main() {
+    wiringPiSetup();  // Initialize WiringPi library
+
+    // Test cases
+    measure_blob_insert(10, 0);   // Insert at the beginning
+    measure_blob_insert(10, 5);   // Insert in the middle
+    measure_blob_insert(10, 9);   // Insert at the end
+    measure_blob_insert(100, 50); // Larger list, insert in the middle
+    measure_blob_insert(1000, 999); // Very large list, insert at the end
+
+    return 0;
+}
